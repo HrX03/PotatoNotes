@@ -29,11 +29,27 @@ class AccountAvatar extends StatelessWidget {
               icon: CircleAvatar(
                 radius: size / 2,
                 backgroundColor: backgroundColor ?? Colors.transparent,
-                foregroundImage:
-                    avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                child: Icon(
-                  Icons.person_outline,
-                  color: context.theme.iconTheme.color,
+                child: ClipOval(
+                  child: avatarUrl != null
+                      ? Image.network(
+                          avatarUrl,
+                          width: size,
+                          height: size,
+                          headers: {
+                            "Authorization": "Bearer ${prefs.accessToken}"
+                          },
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return Icon(
+                              Icons.person_outline,
+                              color: context.theme.iconTheme.color,
+                            );
+                          },
+                        )
+                      : Icon(
+                          Icons.person_outline,
+                          color: context.theme.iconTheme.color,
+                        ),
                 ),
               ),
               size: size,

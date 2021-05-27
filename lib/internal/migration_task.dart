@@ -9,6 +9,7 @@ import 'package:potato_notes/data/model/list_content.dart';
 import 'package:potato_notes/data/model/saved_image.dart';
 import 'package:potato_notes/internal/device_info.dart';
 import 'package:potato_notes/internal/providers.dart';
+import 'package:potato_notes/internal/sync/image/image_helper.dart';
 import 'package:potato_notes/internal/utils.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -89,7 +90,7 @@ class MigrationTask {
         final File file = File(join(appInfo.tempDirectory.path, "$id.jpg"))
           ..create();
         await file.writeAsBytes(Utils.asList<int>(response.data));
-        savedImage = await imageHelper.copyToCache(file);
+        savedImage = await ImageHelper.copyToCache(file);
         await file.delete();
         imageQueue.addUpload(savedImage, id);
       }

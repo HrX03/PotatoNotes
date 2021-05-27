@@ -25,6 +25,7 @@ import 'package:potato_notes/internal/locales/locale_strings.g.dart';
 import 'package:potato_notes/internal/notification_payload.dart';
 import 'package:potato_notes/internal/providers.dart';
 import 'package:potato_notes/internal/sync/image/blake/stub.dart';
+import 'package:potato_notes/internal/sync/image/image_helper.dart';
 import 'package:potato_notes/internal/themes.dart';
 import 'package:potato_notes/routes/note_page.dart';
 import 'package:potato_notes/widget/backup_password_prompt.dart';
@@ -55,7 +56,7 @@ class Utils {
   );
 
   static void deleteNoteSafely(Note note) {
-    imageHelper.handleNoteDeletion(note);
+    ImageHelper.handleNoteDeletion(note);
     helper.deleteNote(note);
   }
 
@@ -705,7 +706,7 @@ class Utils {
 
     if (image != null) {
       final SavedImage savedImage =
-          await imageHelper.copyToCache(File(image.path));
+          await ImageHelper.copyToCache(File(image.path));
       note.images.add(savedImage);
 
       final int currentLength =

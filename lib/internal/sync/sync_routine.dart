@@ -12,6 +12,8 @@ import 'package:potato_notes/internal/providers.dart';
 import 'package:potato_notes/internal/sync/controller.dart';
 import 'package:potato_notes/internal/utils.dart';
 
+import 'image/image_helper.dart';
+
 class SyncRoutine with LoggerProvider {
   static const Set<String> _settingsToSync = {
     "custom_accent",
@@ -166,7 +168,7 @@ class SyncRoutine with LoggerProvider {
       await _saveSyncedNote(note);
     }
     prefs.lastUpdated = DateTime.now().millisecondsSinceEpoch;
-    await imageHelper.handleDownloads(await helper.listNotes(ReturnMode.local));
+    await ImageHelper.handleDownloads(await helper.listNotes(ReturnMode.local));
     return true;
   }
 

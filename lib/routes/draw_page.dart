@@ -19,6 +19,7 @@ import 'package:potato_notes/internal/locales/locale_strings.g.dart';
 import 'package:potato_notes/internal/logger_provider.dart';
 import 'package:potato_notes/internal/note_color_palette.dart';
 import 'package:potato_notes/internal/providers.dart';
+import 'package:potato_notes/internal/sync/image/image_helper.dart';
 import 'package:potato_notes/internal/utils.dart';
 import 'package:potato_notes/widget/dialog_sheet_base.dart';
 import 'package:potato_notes/widget/drawing_board.dart';
@@ -385,7 +386,7 @@ class _DrawPageState extends State<DrawPage>
       widget.note.images
           .removeWhere((savedImage) => savedImage.id == _savedImage!.id);
     }
-    _savedImage = await imageHelper.copyToCache(imgFile);
+    _savedImage = await ImageHelper.copyToCache(imgFile);
 
     widget.note.images.add(_savedImage!);
     helper.saveNote(widget.note.markChanged());

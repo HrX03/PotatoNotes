@@ -22,7 +22,7 @@ class AppInfo extends _AppInfoBase with _$AppInfo {
 
   /// This bool defines whether the app is ready to
   /// support the notes api in a production environment
-  static bool supportsNotesApi = false;
+  static bool supportsNotesApi = true;
 
   static bool supportsNotePinning =
       UniversalPlatform.isAndroid || UniversalPlatform.isIOS;

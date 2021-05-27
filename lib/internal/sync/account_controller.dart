@@ -131,7 +131,6 @@ class AccountController extends Controller {
                 Utils.asMap<String, Object?>(profileRequest.data);
             prefs.username = response["username"] as String?;
             prefs.email = response["email"] as String?;
-            prefs.avatarUrl = await imageHelper.getAvatar();
             return AuthResponse(status: true);
           case 400:
             return AuthResponse(

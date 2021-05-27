@@ -84,5 +84,3 @@ NoteHelper get helper => _ProvidersSingleton.instance._helper;
 TagHelper get tagHelper => _ProvidersSingleton.instance._tagHelper;
 
 SyncRoutine get syncRoutine => _ProvidersSingleton.instance._syncRoutine;
-
-ImageHelper get imageHelper => _ProvidersSingleton.instance._imageHelper;

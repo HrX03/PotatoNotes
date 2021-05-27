@@ -18,30 +18,15 @@ class DownloadQueueItem extends QueueItem {
   Future<void> downloadImage() async {
     status.value = QueueItemStatus.ongoing;
     await dio.download(
-      await getDownloadUrl(),
+      Controller.files.url("get/${savedImage.hash}.jpg"),
       localPath,
       onReceiveProgress: (count, total) {
         progress.value = count / total;
       },
+      options: Options(
+        headers: Controller.tokenHeaders,
+      ),
     );
     status.value = QueueItemStatus.complete;
-  }
-
-  Future<String> getDownloadUrl() async {
-    switch (savedImage.storageLocation) {
-      case StorageLocation.sync:
-        final Response presign = await dio.get(
-          Controller.files.url("get/${savedImage.hash}.jpg"),
-          options: Options(headers: Controller.tokenHeaders),
-        );
-        if (presign.statusCode == 200) {
-          return presign.data.toString();
-        } else {
-          throw presign.data.toString();
-        }
-      case StorageLocation.local:
-      default:
-        throw "Local images can not be downloaded";
-    }
   }
 }

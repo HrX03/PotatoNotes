@@ -81,9 +81,10 @@ class ImageQueue extends ChangeNotifier with LoggerProvider {
   Future<void> processDownloads() async {
     logger.d("DownloadQueue has ${downloadQueue.length} items queued");
     logger.d("Started processing downloads");
-    for (final DownloadQueueItem item in downloadQueue) {
+    await Future.wait(downloadQueue.map((item) => item.downloadImage()));
+    /*for (final DownloadQueueItem item in downloadQueue) {
       await item.downloadImage();
-    }
+    }*/
     for (final DownloadQueueItem item in downloadQueue) {
       if (item.status.value == QueueItemStatus.complete) await updateItem(item);
     }
@@ -111,13 +112,13 @@ class ImageQueue extends ChangeNotifier with LoggerProvider {
 
     logger.d("DeleteQueue has ${downloadQueue.length} items queued");
     logger.d("Started processing uploads");
-    await Future.wait(deleteQueue.map((item) async {
+    for (final item in deleteQueue) {
       if (await hasDuplicates(item.savedImage)) {
         item.status.value = QueueItemStatus.complete;
       } else {
-        return item.deleteImage();
+        await item.deleteImage();
       }
-    }));
+    }
 
     //Remove the items from the queue
     uploadQueue

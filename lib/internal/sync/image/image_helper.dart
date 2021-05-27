@@ -3,27 +3,25 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:blurhash_dart/blurhash_dart.dart';
-import 'package:dio/dio.dart';
 import 'package:image/image.dart';
 import 'package:image_size_getter/file_input.dart';
 import 'package:image_size_getter/image_size_getter.dart';
+import 'package:loggy/loggy.dart';
 import 'package:path/path.dart';
 import 'package:potato_notes/data/database.dart';
 import 'package:potato_notes/data/model/saved_image.dart';
-import 'package:potato_notes/internal/logger_provider.dart';
 import 'package:potato_notes/internal/providers.dart';
-import 'package:potato_notes/internal/sync/controller.dart';
 import 'package:potato_notes/internal/sync/image/blake/stub.dart';
 import 'package:potato_notes/internal/utils.dart';
 
 import 'download_queue_item.dart';
 
-class ImageHelper with LoggerProvider {
-  static const int jpegQuality = 90;
+class ImageHelper {
+  static const int jpegQuality = 60;
   static const int maxHeight = 2048;
   static const int maxBlurHashHeight = 100;
 
-  Future<void> handleDownloads(List<Note> changedNotes) async {
+  static Future<void> handleDownloads(List<Note> changedNotes) async {
     imageQueue.downloadQueue.clear();
     for (final Note note in changedNotes) {
       if (note.images.isNotEmpty) {
@@ -37,7 +35,7 @@ class ImageHelper with LoggerProvider {
     await imageQueue.processDownloads();
   }
 
-  Future<SavedImage> copyToCache(File file) async {
+  static Future<SavedImage> copyToCache(File file) async {
     final SavedImage savedImage = SavedImage.empty();
     final String path =
         join(appInfo.tempDirectory.path, savedImage.id + extension(file.path));
@@ -53,7 +51,8 @@ class ImageHelper with LoggerProvider {
     return savedImage;
   }
 
-  String generateImageHash(Uint8List rawBytes) {
+  static String generateImageHash(Uint8List rawBytes) {
+    final logger = Logger("ImageHelper");
     final Blake2 blake2b = Blake2();
     blake2b.update(rawBytes);
     final Uint8List rawDigest = blake2b.digest();
@@ -63,16 +62,16 @@ class ImageHelper with LoggerProvider {
     return hash;
   }
 
-  Size getImageSize(File file) {
+  static Size getImageSize(File file) {
     return ImageSizeGetter.getSize(FileInput(file));
   }
 
-  String generateBlurHash(Image image) {
+  static String generateBlurHash(Image image) {
     final String hash = BlurHash.encode(image).hash;
     return hash;
   }
 
-  Image compressImage(Uint8List rawBytes) {
+  static Image compressImage(Uint8List rawBytes) {
     final Image image = decodeImage(rawBytes)!;
     // Default height of compressed images
     Image resized;
@@ -85,7 +84,7 @@ class ImageHelper with LoggerProvider {
     return resized;
   }
 
-  Image compressForBlur(Image image) {
+  static Image compressForBlur(Image image) {
     // Default height of compressed images
     Image resized;
     // Ensure we dont enlarge the picture since the resize algorithm makes it look ugly then
@@ -97,13 +96,13 @@ class ImageHelper with LoggerProvider {
     return resized;
   }
 
-  File saveImage(Image image, String path) {
+  static File saveImage(Image image, String path) {
     final File imageFile = File(path);
     imageFile.writeAsBytesSync(encodeJpg(image, quality: jpegQuality));
     return imageFile;
   }
 
-  DownloadQueueItem? getDownloadItem(SavedImage savedimage) {
+  static DownloadQueueItem? getDownloadItem(SavedImage savedimage) {
     final int index = imageQueue.downloadQueue
         .indexWhere((e) => e.savedImage.id == savedimage.id);
     if (index == -1) {
@@ -113,25 +112,14 @@ class ImageHelper with LoggerProvider {
     }
   }
 
-  Future<String?> getAvatar() async {
-    final Response presign = await dio.get(
-      Controller.files.url("get/avatar.jpg"),
-      options: Options(headers: Controller.tokenHeaders),
-    );
-    if (presign.statusCode != 200) {
-      return null;
-    } else {
-      return presign.data.toString();
-    }
-  }
-
-  void handleNoteDeletion(Note note) {
+  static void handleNoteDeletion(Note note) {
     for (final SavedImage image in note.images) {
       imageQueue.addDelete(image);
     }
   }
 
-  String processImage(String jsonParameters) {
+  static String processImage(String jsonParameters) {
+    final logger = Logger("ImageHelper");
     final Map<String, String> parameters =
         Utils.asMap<String, String>(json.decode(jsonParameters));
     final Map<String, String> data = {};

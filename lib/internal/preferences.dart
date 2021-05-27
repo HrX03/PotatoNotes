@@ -208,11 +208,7 @@ abstract class _PreferencesBase with Store, LoggerProvider {
     });
 
     if (sharedPrefs.accessToken != null) {
-      await Controller.files.getStats();
-      final String? netAvatarUrl = await imageHelper.getAvatar();
-      if (netAvatarUrl != _avatarUrlValue) {
-        avatarUrl = netAvatarUrl;
-      }
+      avatarUrl = Controller.files.url("get/avatar.jpg");
     }
   }
 

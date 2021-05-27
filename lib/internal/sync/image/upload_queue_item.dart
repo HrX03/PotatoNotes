@@ -10,6 +10,8 @@ import 'package:potato_notes/internal/sync/controller.dart';
 import 'package:potato_notes/internal/sync/image/queue_item.dart';
 import 'package:potato_notes/internal/utils.dart';
 
+import 'image_helper.dart';
+
 class UploadQueueItem extends QueueItem {
   final String noteId;
   final StorageLocation storageLocation;
@@ -29,7 +31,7 @@ class UploadQueueItem extends QueueItem {
       "tempDirectory": tempDirectory
     };
     final String resultJson =
-        await compute(imageHelper.processImage, jsonEncode(data));
+        await compute(ImageHelper.processImage, jsonEncode(data));
     final Map<String, String> result =
         Utils.asMap<String, String>(json.decode(resultJson));
     savedImage.hash = result["hash"];
@@ -46,41 +48,26 @@ class UploadQueueItem extends QueueItem {
     final File file = File(localPath);
     status.value = QueueItemStatus.ongoing;
     final int length = await file.length();
-    await dio.request(
-      await getUploadUrl(),
-      data: file.openRead(),
+    final formData =
+        FormData.fromMap({'file': await MultipartFile.fromFile(localPath)});
+    final response = await dio.request(
+      Controller.files.url("put/${savedImage.hash}.jpg"),
+      data: formData,
       onSendProgress: (count, total) {
         progress.value = count / total;
       },
       options: Options(
-        method:
-            savedImage.storageLocation == StorageLocation.sync ? "PUT" : "POST",
+        method: "PUT",
         headers: Map.from(headers)
           ..addAll({
             'content-length': length.toString(),
             'content-type': 'image/jpg',
-          }),
+          })
+          ..addAll(Controller.tokenHeaders),
       ),
     );
+    print(response.data.toString());
     status.value = QueueItemStatus.complete;
     savedImage.uploaded = true;
-  }
-
-  Future<String> getUploadUrl() async {
-    switch (savedImage.storageLocation) {
-      case StorageLocation.sync:
-        final Response presign = await dio.get(
-          Controller.files.url("put/${savedImage.hash}.jpg"),
-          options: Options(headers: Controller.tokenHeaders),
-        );
-        if (presign.statusCode == 200) {
-          return presign.data.toString();
-        } else {
-          throw presign.data.toString();
-        }
-      case StorageLocation.local:
-      default:
-        throw "Local images should not be uploaded";
-    }
   }
 }
