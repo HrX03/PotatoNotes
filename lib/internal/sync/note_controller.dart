@@ -12,9 +12,14 @@ class NoteController extends Controller {
   Future<String> add(Note note) async {
     try {
       final String noteJson = json.encode(note.toSyncMap());
+      final Map<String, dynamic> data = {
+        'id': note.id,
+        'content': noteJson,
+        'last_changed': note.lastModifyDate.millisecondsSinceEpoch
+      };
       final Response addResult = await dio.post(
         url("note"),
-        data: noteJson,
+        data: data,
         options: Options(
           headers: Controller.tokenHeaders,
         ),
@@ -57,16 +62,16 @@ class NoteController extends Controller {
     final List<Note> notes = [];
     try {
       final Response listResult = await dio.get(
-        url("note/list?last_updated=$lastUpdated"),
+        url("note?last_updated=$lastUpdated"),
         options: Options(
           headers: Controller.tokenHeaders,
         ),
       );
       handleResponse(listResult);
       final List<Map<String, dynamic>> _notes =
-          Utils.asList<Map<String, dynamic>>(listResult.data["notes"]);
+          Utils.asList<Map<String, dynamic>>(listResult.data);
       for (final Map<String, dynamic> _note in _notes) {
-        final Note note = NoteX.fromSyncMap(_note);
+        final Note note = NoteX.fromSyncMap(jsonDecode(_note["content"] as String) as Map<String, dynamic>);
         notes.add(note.copyWith(synced: true));
       }
       return notes;
@@ -75,12 +80,17 @@ class NoteController extends Controller {
     }
   }
 
-  Future<String> update(String id, Map<String, dynamic> noteDelta) async {
+  Future<String> update(String id, Note note) async {
     try {
-      final String deltaJson = jsonEncode(noteDelta);
+      final String noteJson = json.encode(note.toSyncMap());
+      final Map<String, dynamic> data = {
+        'content': noteJson,
+        'last_changed': note.lastModifyDate.millisecondsSinceEpoch
+      };
+
       final Response updateResult = await dio.patch(
         url("note/$id"),
-        data: deltaJson,
+        data: data,
         options: Options(
           headers: Controller.tokenHeaders,
         ),
@@ -102,7 +112,7 @@ class NoteController extends Controller {
         ),
       );
       handleResponse(listResult);
-      final List<String> idList = (listResult.data["deleted"] as List<dynamic>)
+      final List<String> idList = (listResult.data as List<dynamic>)
           .map((e) => e.toString())
           .toList();
       return idList;

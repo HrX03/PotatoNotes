@@ -60,7 +60,7 @@ class SyncRoutine with LoggerProvider {
       final Response securePingResponse = await dio.get(
         Controller.note.url("secure-ping"),
         options: Options(
-          headers: {"Authorization": prefs.accessToken},
+          headers: Controller.tokenHeaders,
         ),
       );
       if (securePingResponse.statusCode == 401) {
@@ -100,7 +100,7 @@ class SyncRoutine with LoggerProvider {
     await imageQueue.fillUploadQueue();
     await imageQueue.process();
     // Receive and send changes from API
-    await _sendSettingUpdates();
+    //await _sendSettingUpdates();
 
     // Fill the list of added, deleted and updated notes to create a local cache
     await _updateLists();
@@ -120,6 +120,7 @@ class SyncRoutine with LoggerProvider {
     try {
       await _sendNoteUpdates();
     } catch (e) {
+      rethrow;
       return false;
     }
 
@@ -127,6 +128,7 @@ class SyncRoutine with LoggerProvider {
     try {
       await _sendTagUpdates();
     } catch (e) {
+      rethrow;
       return false;
     }
 
@@ -209,11 +211,12 @@ class SyncRoutine with LoggerProvider {
     }
     _updatedNotes.forEach((note, delta) async {
       try {
-        await Controller.note.update(note.id, delta);
+        await Controller.note.update(note.id, note);
         await _saveSyncedNote(note);
         logger.i("Updated note: ${note.id}");
       } catch (e) {
         logger.e(e);
+        throw "Failed to update notes: $e";
       }
     });
     for (final Note note in _deletedNotes) {

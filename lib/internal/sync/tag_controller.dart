@@ -47,7 +47,7 @@ class TagController extends Controller {
   Future<List<Tag>> list(int lastUpdated) async {
     try {
       final Response listResult = await dio.get(
-        url("tag/list?last_updated=$lastUpdated"),
+        url("tag?last_updated=$lastUpdated"),
         options: Options(
           headers: Controller.tokenHeaders,
         ),
@@ -55,7 +55,7 @@ class TagController extends Controller {
       final List<Map<String, dynamic>> body =
           Utils.asList<Map<String, dynamic>>(listResult.data);
       final List<Tag> tags = body.map((map) {
-        final Tag tag = fromSync(map);
+        final Tag tag = fromSync(jsonEncode(map["content"] as String) as Map<String, dynamic>);
         return tag;
       }).toList();
       return tags.map((tag) => tag).toList();
